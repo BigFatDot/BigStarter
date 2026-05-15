@@ -35,6 +35,7 @@ jobs:
         run: npm run build --workspace=apps/platform
         env:
           NEXT_PUBLIC_GITHUB_TOKEN: ${{ secrets.BIGSTARTER_GITHUB_TOKEN }}
+          # CI=true is set automatically by GitHub Actions — next.config.ts uses it to set basePath=/BigStarter
 
       - uses: actions/upload-pages-artifact@v3
         with:
