@@ -1,0 +1,31 @@
+{
+  "name": "KAP Platform",
+  "description": "Build in public with AI agents. Connect your project to KAP to publish progress automatically, collect community feedback, and fund features.",
+  "url": "https://kap.io",
+  "hook_attributes": {
+    "url": "https://api.kap.io/webhooks/github",
+    "active": true
+  },
+  "redirect_url": "https://api.kap.io/github/callback",
+  "setup_url": "https://api.kap.io/github/callback",
+  "setup_on_update": true,
+  "public": true,
+  "default_permissions": {
+    "contents": "write",
+    "issues": "write",
+    "pull_requests": "read",
+    "checks": "read",
+    "metadata": "read",
+    "actions": "read"
+  },
+  "default_events": [
+    "push",
+    "pull_request",
+    "issues",
+    "issue_comment",
+    "workflow_run",
+    "release",
+    "check_run",
+    "create"
+  ]
+}

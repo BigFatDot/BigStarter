@@ -1,0 +1,34 @@
+node_modules/
+dist/
+build/
+.next/
+*.tsbuildinfo
+*.js.map
+*.d.ts.map
+
+# Environment — jamais committer
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+/tmp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build cache
+.cache/
+coverage/
+.tsx/
+
+# KAP data — bases Kuzu locales et sessions (données de dev, pas du code)
+/data/
+.kap/
+
+# Test files
+test-sampling.js
+test-github-pkg.js

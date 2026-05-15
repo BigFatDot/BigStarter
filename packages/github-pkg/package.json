@@ -1,0 +1,21 @@
+{
+  "name": "@kap/github-pkg",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@kap/pkg": "*",
+    "@octokit/rest": "^21.0.0",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
+    "ulid": "^2.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,5 @@
+{$KAP_DOMAIN:localhost} {
+    reverse_proxy /api/* api:3000
+    reverse_proxy /stream/* platform:3001
+    reverse_proxy platform:3001
+}

@@ -1,0 +1,191 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git checkout*)",
+      "Bash(npm run*)",
+      "Bash(npm install*)",
+      "Bash(npx tsc*)",
+      "Bash(npx tsx*)",
+      "Bash(node*)",
+      "mcp__kap__kap_report_event",
+      "mcp__kap__kap_pkg_write",
+      "mcp__kap__kap_pkg_build_context",
+      "mcp__kap__kap_pkg_query",
+      "mcp__kap__kap_fetch_feedback",
+      "mcp__kap__kap_escalate_to_admin",
+      "ListMcpResourcesTool",
+      "ReadMcpResourceTool"
+    ]
+  },
+
+  "env": {
+    "KAP_PROJECT_ID":        "kap-platform",
+    "KAP_API_URL":           "local",
+    "KAP_DATA_DIR":          "./.kap",
+    "KAP_AUTONOMY_LEVEL":    "1",
+    "KAP_SESSION_BUDGET_USD": "2.00",
+    "KAP_CB_MAX_ERRORS":     "3",
+    "KAP_CB_WINDOW_MS":      "300000"
+  },
+
+  "hooks": {
+
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "kap",
+            "tool": "kap_pkg_build_context",
+            "input": {
+              "project_id": "kap-platform",
+              "task_description": "session start — load project state and recent decisions",
+              "use_sampling": true
+            },
+            "statusMessage": "Chargement contexte KAP...",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/control/circuit-breaker.js",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/control/budget-check.js",
+            "timeout": 3
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/guard-critical-files.js",
+            "statusMessage": "Vérification permissions KAP...",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/validation/commit-convention.js",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/audit/audit-log.js",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/report-git-event.js",
+            "async": true,
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/validation/post-test-runner.js",
+            "statusMessage": "Typecheck...",
+            "timeout": 25
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/auto-pkg-write.js",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__kap__report_event",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/notify-platform.js",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/control/error-tracker.js",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/summary/context-compressor.js",
+            "statusMessage": "Sauvegarde checkpoint KAP avant compression...",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/session-summary.js",
+            "statusMessage": "Résumé session KAP...",
+            "async": true,
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+
+  }
+}

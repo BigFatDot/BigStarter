@@ -1,0 +1,25 @@
+{
+  "name": "@kap/sdk",
+  "version": "0.1.0",
+  "description": "KAP SDK — git hooks and CI webhook integration",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "kap": "./dist/cli/init.js",
+    "kap-hook": "./dist/cli/hook.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "kap": {
+      "command": "node",
+      "args": [
+        "./packages/mcp-server/dist/index.js"
+      ],
+      "env": {
+        "KAP_API_URL": "local",
+        "KAP_PROJECT_ID": "kap-platform",
+        "KAP_DATA_DIR": "./.kap"
+      }
+    }
+  }
+}
