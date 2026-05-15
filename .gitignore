@@ -25,9 +25,15 @@ Thumbs.db
 coverage/
 .tsx/
 
-# KAP data — bases Kuzu locales et sessions (données de dev, pas du code)
-/data/
-.kap/
+# KAP/BigStarter — données locales uniquement
+/data/                        # bases Kuzu locales
+.kap/*.db                     # bases Kuzu
+.kap/session-state.json       # état circuit-breaker local
+.kap/sessions/                # résumés de sessions locales
+.kap/audit/                   # logs d'audit locaux
+.kap/compressions/            # checkpoints de contexte locaux
+
+# .kap/kap.json, .kap/decisions/, .kap/updates/, .kap/features/ sont committés
 
 # Claude Code local settings — contient des tokens, jamais committer
 .claude/settings.json
