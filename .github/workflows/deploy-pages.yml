@@ -3,9 +3,6 @@ name: Deploy BigStarter Platform
 on:
   push:
     branches: [main]
-    paths:
-      - 'apps/platform/**'
-      - '.kap/**'
   schedule:
     - cron: '*/30 * * * *'
   workflow_dispatch:
@@ -28,11 +25,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - run: npm ci
+      - name: Install platform dependencies only
+        run: |
+          cd apps/platform
+          npm install --legacy-peer-deps
 
-      - run: npm run build --workspace=apps/platform
+      - name: Build static export
+        run: npm run build --workspace=apps/platform
         env:
           NEXT_PUBLIC_GITHUB_TOKEN: ${{ secrets.BIGSTARTER_GITHUB_TOKEN }}
 
