@@ -92,12 +92,45 @@ RULES:
         publishReady = false;
       }
 
-      // 4. Persister l'update éditoriale dans le PKG
-      await pkg.writeSignal({
-        signal_type: "vote_result",
-        content: `[UPDATE] ${editorial}`,
-        source: "agent",
-      });
+      // 4. Commit l'update dans .kap/updates/ (GitHub source de vérité)
+      const date = new Date().toISOString().slice(0, 10);
+      const slug = editorial.slice(0, 40).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+      const filename = `${date}-${slug}.md`;
+      const markdownContent = `---
+date: "${new Date().toISOString()}"
+event_type: "${args.event_type}"
+artifact_id: "${artifactId}"
+---
+
+${editorial}
+`;
+
+      // Essaie de committer via GitHubPKGService si disponible, sinon log local
+      let committed = false;
+      try {
+        const { Octokit } = await import("@octokit/rest" as string);
+        const token = process.env["GITHUB_TOKEN"] ?? process.env["GITHUB_APP_TOKEN"];
+        const owner = process.env["GITHUB_OWNER"];
+        const repo  = process.env["GITHUB_REPO"];
+        if (token && owner && repo) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const octokit = new (Octokit as any)({ auth: token });
+          const path = `.kap/updates/${filename}`;
+          // Check if file exists (for SHA)
+          let sha: string | undefined;
+          try {
+            const existing = await octokit.repos.getContent({ owner, repo, path });
+            sha = (existing.data as { sha: string }).sha;
+          } catch { /* new file */ }
+          await octokit.repos.createOrUpdateFileContents({
+            owner, repo, path,
+            message: `bigstarter: update "${editorial.slice(0, 60)}"`,
+            content: Buffer.from(markdownContent).toString("base64"),
+            ...(sha ? { sha } : {}),
+          });
+          committed = true;
+        }
+      } catch { /* GitHub not configured or unreachable */ }
 
       return {
         content: [{
@@ -107,9 +140,13 @@ RULES:
             artifact_id: artifactId,
             editorial_update: editorial,
             publish_ready: publishReady,
-            message: publishReady
-              ? `Update generated via sampling and stored. Ready to publish.`
-              : `Event stored. Sampling unavailable — using raw summary.`,
+            committed_to_github: committed,
+            filename: committed ? `.kap/updates/${filename}` : null,
+            message: committed
+              ? `Update committed to .kap/updates/${filename} — visible on BigStarter platform.`
+              : publishReady
+                ? `Update generated via sampling. Add GITHUB_TOKEN to commit automatically.`
+                : `Event stored. Sampling unavailable — using raw summary.`,
           }),
         }],
       };

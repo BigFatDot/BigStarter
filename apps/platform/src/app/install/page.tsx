@@ -1,51 +1,60 @@
 /**
  * Install page — /install
- * One-click GitHub App installation for existing projects.
+ * Instructions for adding a project to BigStarter.
  */
 
-const API_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000'
+const GITHUB_APP_URL = process.env['NEXT_PUBLIC_GITHUB_APP_URL'] ?? 'https://github.com/apps/bigstarter'
 
 export default function InstallPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-20 text-center">
 
       <p className="mb-4 text-sm font-medium uppercase tracking-widest text-indigo-400">
-        KAP — Build in Public
+        BigStarter — Build in Public
       </p>
 
       <h1 className="mb-6 text-4xl font-extrabold tracking-tight">
-        Connect your GitHub project
+        Add your project to BigStarter
       </h1>
 
       <p className="mb-10 text-lg leading-relaxed text-gray-300">
-        Install the KAP GitHub App on any repo. Your commits, PRs, and community signals
-        automatically flow to your public project page — no SDK, no configuration.
+        Push a <code className="text-indigo-300">.kap/kap.json</code> file to your public GitHub repo.
+        BigStarter indexes it automatically — no backend, no configuration, GitHub is the source of truth.
       </p>
 
       <div className="mb-10 rounded-xl border border-gray-700 bg-gray-900 p-8 text-left">
-        <h2 className="mb-4 text-base font-semibold text-gray-200">What happens after install</h2>
+        <h2 className="mb-4 text-base font-semibold text-gray-200">How it works</h2>
         <ol className="space-y-3 text-sm text-gray-400">
           <li className="flex gap-3">
             <span className="text-indigo-400 font-bold">1.</span>
-            <span>KAP reads your repo history and bootstraps the project page</span>
+            <span>
+              Create <code className="text-indigo-300">.kap/kap.json</code> in your repo with{' '}
+              <code className="text-indigo-300">{'{"name":"…","pitch":"…","tags":[]}'}</code>
+            </span>
           </li>
           <li className="flex gap-3">
             <span className="text-indigo-400 font-bold">2.</span>
-            <span>Every commit, merged PR, and release auto-publishes an update</span>
+            <span>
+              Push updates as Markdown files to <code className="text-indigo-300">.kap/updates/</code>
+            </span>
           </li>
           <li className="flex gap-3">
             <span className="text-indigo-400 font-bold">3.</span>
-            <span>Your GitHub Issues become community signals — votes and funding enabled</span>
+            <span>
+              Open GitHub Issues labeled <code className="text-indigo-300">kap-signal</code> to collect community votes
+            </span>
           </li>
           <li className="flex gap-3">
             <span className="text-indigo-400 font-bold">4.</span>
-            <span>Decisions are recorded in <code className="text-indigo-300">.kap/</code> in your repo — readable, versioned, git-tracked</span>
+            <span>
+              BigStarter rebuilds every 30 minutes — your project page appears automatically
+            </span>
           </li>
         </ol>
       </div>
 
       <a
-        href={`${API_URL}/github/install`}
+        href={GITHUB_APP_URL}
         className="inline-flex items-center gap-3 rounded-lg bg-indigo-600 px-8 py-4 text-base font-semibold text-white transition hover:bg-indigo-500"
       >
         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">

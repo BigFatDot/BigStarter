@@ -1,25 +1,32 @@
 /**
  * Install success page — /install/success
  * Shown after GitHub App installation completes.
+ * Note: searchParams are not available in static export; installation ID is read client-side.
  */
 
-interface PageProps {
-  searchParams: Promise<{ installation?: string }>
-}
+'use client'
 
-export default async function InstallSuccessPage({ searchParams }: PageProps) {
-  const { installation } = await searchParams
+import { useEffect, useState } from 'react'
+
+export default function InstallSuccessPage() {
+  const [installation, setInstallation] = useState<string | null>(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const id = params.get('installation_id') ?? params.get('installation')
+    if (id) setInstallation(id)
+  }, [])
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-20 text-center">
-      <div className="mb-8 text-5xl">✓</div>
+      <div className="mb-8 text-5xl">&#10003;</div>
 
       <h1 className="mb-4 text-3xl font-extrabold tracking-tight text-indigo-400">
         GitHub App installed
       </h1>
 
       <p className="mb-8 text-lg text-gray-300">
-        KAP is now connected to your repository.
+        BigStarter is now connected to your repository.
         {installation && (
           <span className="block mt-2 text-sm text-gray-500">
             Installation ID: {installation}

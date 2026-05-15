@@ -3,8 +3,8 @@ import type { ReactNode } from 'react'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'KAP — KickStartering Agent Platform',
-  description: 'Community-driven crowdfunding powered by AI agents',
+  title: 'BigStarter — The Kickstarter for Vibe Coding',
+  description: 'Build in public. Every commit, decision, and community signal tracked automatically via a local MCP plugin.',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

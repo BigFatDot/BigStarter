@@ -1,12 +1,13 @@
 {
-  "name": "@kap/mcp-server",
+  "name": "@bigstarter/mcp-server",
   "version": "0.1.0",
-  "description": "KAP MCP Server — interface between Orchestrator Agent and KAP backend",
+  "description": "The Kickstarter for vibe coding — MCP plugin for building in public with AI agents",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "kap-mcp-server": "./dist/index.js"
+    "bigstarter": "./dist/cli/init.js",
+    "bigstarter-mcp": "./dist/index.js"
   },
   "exports": {
     ".": {
@@ -17,12 +18,23 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "dev": "node --watch dist/index.js",
     "start": "node dist/index.js",
     "clean": "rm -rf dist"
   },
+  "keywords": [
+    "mcp", "ai-agents", "build-in-public", "vibe-coding",
+    "kickstarter", "github", "claude", "bigstarter"
+  ],
+  "homepage": "https://github.com/nic01asFr/KickStarteringAgentPlatform",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nic01asFr/KickStarteringAgentPlatform.git"
+  },
+  "license": "MIT",
+  "files": ["dist", "README.md"],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "@octokit/rest": "^21.0.0",
     "kuzu": "^0.7.1",
     "ulid": "^2.4.0",
     "zod": "^3.22.0"

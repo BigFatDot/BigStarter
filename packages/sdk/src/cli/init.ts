@@ -1,248 +1,154 @@
 #!/usr/bin/env node
 /**
- * kap init — onboarding CLI
- * Installs SDK hooks, generates kap.config.json and CLAUDE.md template
- * in the developer's project directory.
+ * bigstarter init — onboarding CLI
+ * Creates .kap/kap.json, .mcp.json (gitignored), and .github/workflows/bigstarter-reporter.yml
  *
- * Usage: npx @kap/sdk init
+ * Usage: npx @bigstarter/mcp-server init
  */
 
-import { execSync } from 'node:child_process'
-import { existsSync, writeFileSync, mkdirSync } from 'node:fs'
+import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import * as readline from 'node:readline/promises'
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 
-async function prompt(q: string): Promise<string> {
-  const answer = await rl.question(q)
-  return answer.trim()
+async function prompt(q: string, fallback = ''): Promise<string> {
+  const answer = (await rl.question(q)).trim()
+  return answer || fallback
 }
 
 async function main(): Promise<void> {
   const cwd = process.cwd()
 
-  console.log('\nKAP — Connexion de votre projet\n')
+  console.log('\n🚀 BigStarter — Connect your project\n')
+  console.log('This will create 3 files in your project:')
+  console.log('  .kap/kap.json          — project metadata (committed)')
+  console.log('  .mcp.json              — MCP server config (gitignored, has token)')
+  console.log('  .github/workflows/     — auto-reporter on push/PR/release\n')
 
-  const projectId = await prompt('Project ID (depuis votre dashboard KAP) : ')
-  const apiToken  = await prompt('API Token : ')
-  const name      = await prompt('Nom du projet : ')
-  const pitch     = await prompt('Pitch en une phrase : ')
+  // Detect GitHub info from git remote
+  let detectedOwner = ''
+  let detectedRepo  = ''
+  try {
+    const remote = await import('node:child_process')
+      .then(m => m.execSync('git remote get-url origin 2>/dev/null').toString().trim())
+    const match = remote.match(/github\.com[:/]([^/]+)\/([^/.]+)/)
+    if (match) { detectedOwner = match[1] ?? ''; detectedRepo = match[2] ?? '' }
+  } catch { /* no git or no remote */ }
 
-  const level = await prompt(
-    'Niveau d\'autonomie de l\'agent (0=tout approuver / 1=valider les grandes décisions / 2=autonome avec escalades) [1] : ',
-  ) || '1'
-
-  const transparency = await prompt(
-    'Visibilité des updates (public / backers / contributors) [backers] : ',
-  ) || 'backers'
-
-  // --- kap.config.json ---
-  const config = {
-    projectId,
-    name,
-    pitch,
-    apiUrl: 'https://api.kap.io',
-    autonomyLevel: Number(level),
-    transparency: {
-      level: transparency,
-      excludePatterns: ['**/.env*', '**/secrets/**', '**/node_modules/**'],
-    },
-    hooks: {
-      git: ['post-commit', 'post-push'],
-      ci: true,
-    },
-    escalate: {
-      onArchitecturalDecision: true,
-      onFinancialSpendAbove: 50,
-      onBreakingChange: true,
-      filePatterns: ['**/migrations/**', '**/auth/**'],
-    },
-  }
-
-  writeFileSync(
-    join(cwd, 'kap.config.json'),
-    JSON.stringify(config, null, 2) + '\n',
-  )
-  console.log('  kap.config.json créé')
-
-  // --- Git hooks ---
-  const hooksDir = join(cwd, '.git', 'hooks')
-  if (existsSync(join(cwd, '.git'))) {
-    const postCommit = `#!/bin/sh\nnpx @kap/sdk hook post-commit\n`
-    const postPush   = `#!/bin/sh\nnpx @kap/sdk hook post-push\n`
-    writeFileSync(join(hooksDir, 'post-commit'), postCommit, { mode: 0o755 })
-    writeFileSync(join(hooksDir, 'post-push'),   postPush,   { mode: 0o755 })
-    console.log('  Git hooks installés (post-commit, post-push)')
-  } else {
-    console.warn('  Pas de répertoire .git trouvé — hooks non installés')
-  }
-
-  // --- .claude/settings.json (MCP server) ---
-  const claudeDir = join(cwd, '.claude')
-  if (!existsSync(claudeDir)) mkdirSync(claudeDir)
-
-  const claudeSettings = {
-    mcpServers: {
-      kap: {
-        command: 'npx',
-        args: ['@kap/mcp-server'],
-        env: {
-          KAP_API_URL: 'https://api.kap.io',
-          KAP_API_TOKEN: apiToken,
-          KAP_PROJECT_ID: projectId,
-        },
-      },
-    },
-  }
-
-  const settingsPath = join(claudeDir, 'settings.json')
-  if (!existsSync(settingsPath)) {
-    writeFileSync(settingsPath, JSON.stringify(claudeSettings, null, 2) + '\n')
-    console.log('  .claude/settings.json créé (MCP server KAP)')
-  } else {
-    console.log('  .claude/settings.json existe déjà — ajoutez manuellement le serveur MCP kap')
-    console.log(JSON.stringify(claudeSettings.mcpServers, null, 2))
-  }
-
-  // --- CLAUDE.md (instructions pour l'agent) ---
-  const claudeMd = generateClaudeMd({ name, pitch, projectId, level: Number(level) })
-  writeFileSync(join(cwd, 'CLAUDE.md'), claudeMd)
-  console.log('  CLAUDE.md généré')
-
-  // --- .gitignore : exclure le token ---
-  const gitignorePath = join(cwd, '.gitignore')
-  const tokenLine = '\n# KAP — ne jamais committer le token\n.env.kap\n'
-  if (existsSync(gitignorePath)) {
-    const { appendFileSync } = await import('node:fs')
-    appendFileSync(gitignorePath, tokenLine)
-  }
+  const name    = await prompt('Project name: ')
+  const pitch   = await prompt('One-line pitch: ')
+  const owner   = await prompt(`GitHub owner [${detectedOwner}]: `, detectedOwner)
+  const repo    = await prompt(`GitHub repo  [${detectedRepo}]: `, detectedRepo)
+  const tags    = await prompt('Tags (comma-separated, e.g. saas,ai): ')
+  const token   = await prompt('GitHub token (ghp_xxx, stored in .mcp.json only): ')
 
   rl.close()
-  console.log(`
-Projet connecté à KAP.
 
-Prochaines étapes :
-  1. Lancez Claude Code dans ce répertoire
-  2. Le serveur MCP kap est automatiquement disponible
-  3. Chaque commit sera capturé et publié sur votre page projet
-  4. La communauté peut déjà suivre votre projet sur :
-     https://kap.io/p/${projectId}
+  // ── 1. .kap/kap.json ──────────────────────────────────────────
+  mkdirSync(join(cwd, '.kap', 'updates'),   { recursive: true })
+  mkdirSync(join(cwd, '.kap', 'decisions'), { recursive: true })
+
+  writeFileSync(
+    join(cwd, '.kap', 'kap.json'),
+    JSON.stringify({
+      name,
+      pitch,
+      owner,
+      repo,
+      visibility: 'public',
+      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+      autonomy_level: 1,
+      version: '0.1.0',
+    }, null, 2) + '\n',
+  )
+  console.log('\n✓ .kap/kap.json created')
+
+  // ── 2. .mcp.json (gitignored) ─────────────────────────────────
+  const mcpServerPath = join(cwd, 'node_modules', '@bigstarter', 'mcp-server', 'dist', 'index.js')
+  const useFallback   = !existsSync(mcpServerPath)
+
+  writeFileSync(
+    join(cwd, '.mcp.json'),
+    JSON.stringify({
+      mcpServers: {
+        bigstarter: {
+          command: 'node',
+          args: [useFallback
+            ? 'node_modules/@bigstarter/mcp-server/dist/index.js'
+            : mcpServerPath,
+          ],
+          env: {
+            KAP_API_URL:    'local',
+            KAP_PROJECT_ID: `${owner}/${repo}`,
+            KAP_DATA_DIR:   './.kap',
+            GITHUB_TOKEN:   token,
+            GITHUB_OWNER:   owner,
+            GITHUB_REPO:    repo,
+          },
+        },
+      },
+    }, null, 2) + '\n',
+  )
+  console.log('✓ .mcp.json created')
+
+  // ── 3. .gitignore — add .mcp.json if not already there ────────
+  const gitignorePath = join(cwd, '.gitignore')
+  const gitignore = existsSync(gitignorePath) ? readFileSync(gitignorePath, 'utf8') : ''
+  if (!gitignore.includes('.mcp.json')) {
+    writeFileSync(gitignorePath, gitignore + '\n# BigStarter — local config with token\n.mcp.json\n')
+    console.log('✓ .mcp.json added to .gitignore')
+  }
+
+  // ── 4. GitHub Actions workflow ─────────────────────────────────
+  mkdirSync(join(cwd, '.github', 'workflows'), { recursive: true })
+  const workflowPath = join(cwd, '.github', 'workflows', 'bigstarter-reporter.yml')
+  if (!existsSync(workflowPath)) {
+    writeFileSync(workflowPath, `name: BigStarter Reporter
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['.kap/updates/**']
+  pull_request:
+    types: [closed]
+  release:
+    types: [published]
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npx @bigstarter/mcp-server report
+        env:
+          ANTHROPIC_API_KEY: \${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+`)
+    console.log('✓ .github/workflows/bigstarter-reporter.yml created')
+  }
+
+  console.log(`
+✅ BigStarter connected!
+
+Next steps:
+  1. Commit .kap/kap.json and the workflow:
+     git add .kap/kap.json .github/ && git commit -m "feat: add BigStarter"
+     git push
+
+  2. Restart Claude Code in this directory
+     → The bigstarter MCP server loads automatically
+
+  3. In Claude Code, start with:
+     /mcp__bigstarter__agent_setup builder
+
+  4. Your project will appear on the BigStarter platform within minutes:
+     https://nic01asFr.github.io/KickStarteringAgentPlatform/projects/${owner}/${repo}
 `)
 }
 
-function generateClaudeMd(opts: {
-  name: string
-  pitch: string
-  projectId: string
-  level: number
-}): string {
-  const { name, pitch, projectId, level } = opts
-
-  const autonomyInstructions: Record<number, string> = {
-    0: `Propose chaque action significative à l'Admin avant de l'exécuter.
-Appelle \`kap_escalate_to_admin\` pour toute décision architecturale, changement de dépendance, ou modification de schéma.
-L'Admin approuve avant que tu continues.`,
-
-    1: `Tu peux exécuter les tâches de développement de manière autonome.
-Escalade à l'Admin via \`kap_escalate_to_admin\` pour :
-- Toute décision architecturale (changement de DB, refactor majeur, nouvelle dépendance structurante)
-- Tout changement dans les fichiers d'auth, de paiement, ou de migration
-- Tout déploiement en production
-Pour le reste : code, teste, commit de manière autonome.`,
-
-    2: `Tu opères de manière pleinement autonome.
-N'escalade que pour : dépenses financières, changements contractuels, décisions de pivotement produit.
-Pour tout le reste, décide et execute.`,
-  }
-
-  return `# ${name}
-
-> ${pitch}
-
----
-
-## Connexion KAP
-
-Ce projet est connecté à la plateforme KAP (project ID: \`${projectId}\`).
-KAP publie ton avancement en temps réel sur une page publique et collecte le feedback de la communauté.
-
----
-
-## Comportement attendu avec KAP
-
-### Niveau d'autonomie configuré : ${level}
-
-${autonomyInstructions[level] ?? autonomyInstructions[1]}
-
----
-
-### Outils MCP disponibles
-
-Le serveur MCP \`kap\` est disponible. Utilise ces outils :
-
-**\`kap_report_event\`** — Signale un event significatif (milestone atteint, feature terminée, décision prise).
-Appelle-le après chaque tâche complète, pas après chaque commit.
-
-**\`kap_fetch_feedback\`** — Récupère le brief communautaire (top feature requests, votes, cagnottes actives).
-Appelle-le en début de session ou quand tu cherches quoi traiter ensuite.
-
-**\`kap_pkg_build_context\`** — Récupère le contexte du projet (décisions passées, contraintes actives, features en cours).
-Appelle-le au début d'une nouvelle session ou avant une décision importante.
-
-**\`kap_pkg_write\`** — Enregistre une décision dans la mémoire projet.
-Appelle-le chaque fois que tu prends une décision architecturale ou technique significative.
-Format : titre + description + rationale + alternatives rejetées.
-
-**\`kap_escalate_to_admin\`** — Demande une décision à l'Admin.
-Présente toujours : contexte, options avec pros/cons, ta recommandation.
-Ne bloque pas sur une escalade — estime l'impact si l'Admin ne répond pas dans 24h.
-
-**\`kap_trigger_vote\`** — Lance un vote communautaire si une décision peut être soumise à la communauté.
-Exemple : "On implémente A ou B en priorité ?"
-
----
-
-### Cycle de session recommandé
-
-\`\`\`
-1. Début de session
-   └── kap_pkg_build_context("description de ce sur quoi tu travailles")
-   └── kap_fetch_feedback()  ← voir si la communauté a exprimé des besoins récents
-
-2. Pendant le travail
-   └── code, teste, commit normalement
-   └── kap_pkg_write() à chaque décision significative
-   └── kap_escalate_to_admin() si niveau d'autonomie l'exige
-
-3. Fin de session / milestone
-   └── kap_report_event() avec résumé de ce qui a été fait
-   └── Les git hooks publient automatiquement l'update sur la page projet
-\`\`\`
-
----
-
-### Ce qui est publié automatiquement
-
-Les git hooks capturent et transmettent à KAP :
-- Chaque commit (résumé généré automatiquement)
-- Les résultats de CI/CD
-- Les déploiements
-
-**Ne jamais committer** : \`.env\`, tokens, credentials, données personnelles.
-Patterns exclus de la publication : \`**/.env*\`, \`**/secrets/**\`
-
----
-
-### Mémoire du projet
-
-La mémoire long terme du projet est dans le PKG (Project Knowledge Graph) sur KAP.
-À chaque nouvelle session, commence par \`kap_pkg_build_context\` pour récupérer le contexte pertinent.
-Ne te fie pas uniquement à l'historique git pour les décisions — le PKG contient le *pourquoi*, git contient le *quoi*.
-`
-}
-
-main().catch(err => {
-  console.error(err)
-  process.exit(1)
-})
+main().catch(err => { console.error(err); process.exit(1) })
