@@ -29,6 +29,10 @@ coverage/
 /data/
 .kap/
 
+# Claude Code local settings — contient des tokens, jamais committer
+.claude/settings.json
+.claude/settings.local.json
+
 # Test files
 test-sampling.js
 test-github-pkg.js
