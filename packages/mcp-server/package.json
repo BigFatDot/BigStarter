@@ -25,10 +25,10 @@
     "mcp", "ai-agents", "build-in-public", "vibe-coding",
     "kickstarter", "github", "claude", "bigstarter"
   ],
-  "homepage": "https://github.com/nic01asFr/KickStarteringAgentPlatform",
+  "homepage": "https://github.com/BigFatDot/BigStarter",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nic01asFr/KickStarteringAgentPlatform.git"
+    "url": "https://github.com/BigFatDot/BigStarter.git"
   },
   "license": "MIT",
   "files": ["dist", "README.md"],

@@ -147,7 +147,7 @@ Next steps:
      /mcp__bigstarter__agent_setup builder
 
   4. Your project will appear on the BigStarter platform within minutes:
-     https://nic01asFr.github.io/KickStarteringAgentPlatform/projects/${owner}/${repo}
+     https://BigFatDot.github.io/BigStarter/projects/${owner}/${repo}
 `)
 }
 

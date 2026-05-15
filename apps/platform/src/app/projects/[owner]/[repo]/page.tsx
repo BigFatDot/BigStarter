@@ -14,7 +14,7 @@ interface PageProps {
 
 export async function generateStaticParams(): Promise<Array<{ owner: string; repo: string }>> {
   // Fallback: always pre-render the BigStarter project itself
-  const seed = [{ owner: 'nic01asFr', repo: 'KickStarteringAgentPlatform' }]
+  const seed = [{ owner: 'BigFatDot', repo: 'BigStarter' }]
   try {
     const projects = await searchProjects()
     const discovered = projects.map((p) => ({ owner: p.owner, repo: p.repo }))
