@@ -13,8 +13,19 @@ interface PageProps {
 }
 
 export async function generateStaticParams(): Promise<Array<{ owner: string; repo: string }>> {
-  const projects = await searchProjects()
-  return projects.map((p) => ({ owner: p.owner, repo: p.repo }))
+  // Fallback: always pre-render the BigStarter project itself
+  const seed = [{ owner: 'nic01asFr', repo: 'KickStarteringAgentPlatform' }]
+  try {
+    const projects = await searchProjects()
+    const discovered = projects.map((p) => ({ owner: p.owner, repo: p.repo }))
+    // Merge seed + discovered, deduplicated
+    const seen = new Set(seed.map(p => `${p.owner}/${p.repo}`))
+    for (const p of discovered) {
+      const key = `${p.owner}/${p.repo}`
+      if (!seen.has(key)) { seen.add(key); seed.push(p) }
+    }
+  } catch { /* network unavailable at build time — use seed only */ }
+  return seed
 }
 
 function StatCard({ label, value }: { label: string; value: number }) {
