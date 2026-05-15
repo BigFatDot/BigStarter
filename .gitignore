@@ -33,6 +33,9 @@ coverage/
 .claude/settings.json
 .claude/settings.local.json
 
+# MCP config locale — peut contenir des tokens
+.mcp.json
+
 # Test files
 test-sampling.js
 test-github-pkg.js
