@@ -8,6 +8,12 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+
+    # Required for Trusted Publishing (OIDC)
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -16,13 +22,13 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Install + build
+      - name: Build
         run: |
           cd packages/mcp-server
           npm install
           npm run build
 
-      - name: Publish
-        run: npm publish --workspace=packages/mcp-server --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish (Trusted Publishing — no token needed)
+        run: npm publish --workspace=packages/mcp-server --access public --provenance
+        # --provenance attaches a signed attestation linking the package to this exact commit
+        # NODE_AUTH_TOKEN not needed — OIDC handles auth automatically
