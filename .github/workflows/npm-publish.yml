@@ -1,0 +1,28 @@
+name: Publish @bigstarter/mcp-server
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install + build
+        run: |
+          cd packages/mcp-server
+          npm install
+          npm run build
+
+      - name: Publish
+        run: npm publish --workspace=packages/mcp-server --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
