@@ -83,3 +83,13 @@ jobs:
           git add .kap/updates/
           git diff --cached --quiet || git commit -m "bigstarter: add update [skip ci]"
           git push
+
+      - name: Trigger BigStarter platform rebuild
+        # Notifies BigFatDot/BigStarter to rebuild immediately — no 30min wait
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/BigFatDot/BigStarter/dispatches \
+            -d "{\"event_type\":\"project-updated\",\"client_payload\":{\"project\":\"${{ github.repository }}\"}}" \
+          && echo "✓ BigStarter rebuild triggered" || echo "⚠ Could not trigger rebuild (no cross-repo token)"

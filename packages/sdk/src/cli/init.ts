@@ -128,6 +128,15 @@ jobs:
         env:
           ANTHROPIC_API_KEY: \${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger BigStarter platform rebuild
+        run: |
+          curl -s -X POST \\
+            -H "Authorization: Bearer \${{ secrets.GITHUB_TOKEN }}" \\
+            -H "Accept: application/vnd.github.v3+json" \\
+            https://api.github.com/repos/BigFatDot/BigStarter/dispatches \\
+            -d '{"event_type":"project-updated","client_payload":{"project":"\${{ github.repository }}"}}' \\
+          && echo "✓ BigStarter rebuild triggered" || echo "⚠ Could not trigger rebuild"
 `)
     console.log('✓ .github/workflows/bigstarter-reporter.yml created')
   }

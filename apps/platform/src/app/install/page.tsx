@@ -48,7 +48,7 @@ export default function InstallPage() {
           </li>
           <li className="flex gap-3">
             <span className="text-indigo-400 font-bold shrink-0">4.</span>
-            <span>Installs a GitHub Action that auto-publishes updates on every commit, PR merge, or release</span>
+            <span>Installs a GitHub Action that auto-publishes updates on every commit, PR merge, or release — and triggers an immediate platform rebuild</span>
           </li>
         </ol>
       </div>
@@ -71,7 +71,7 @@ export default function InstallPage() {
           </li>
           <li className="flex gap-3">
             <span className="shrink-0">4.</span>
-            <span>Open a PR on <a href="https://github.com/BigFatDot/BigStarter" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">BigFatDot/BigStarter</a> to add yourself to registry.json</span>
+            <span>Open a PR on <a href="https://github.com/BigFatDot/BigStarter" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">BigFatDot/BigStarter</a> to add yourself to registry.json — platform rebuilds immediately on merge</span>
           </li>
         </ol>
       </div>
