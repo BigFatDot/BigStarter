@@ -1,70 +1,83 @@
 /**
  * Install page — /install
- * Instructions for adding a project to BigStarter.
  */
-
-const GITHUB_APP_URL = process.env['NEXT_PUBLIC_GITHUB_APP_URL'] ?? 'https://github.com/apps/bigstarter'
-
 export default function InstallPage() {
   return (
-    <main className="mx-auto max-w-2xl px-4 py-20 text-center">
+    <main className="mx-auto max-w-2xl px-4 py-16">
 
-      <p className="mb-4 text-sm font-medium uppercase tracking-widest text-indigo-400">
-        BigStarter — Build in Public
-      </p>
+      <div className="text-center mb-12">
+        <p className="mb-3 text-sm font-medium uppercase tracking-widest text-indigo-400">
+          BigStarter — Build in Public
+        </p>
+        <h1 className="text-4xl font-extrabold tracking-tight mb-4">
+          Add your project
+        </h1>
+        <p className="text-lg text-gray-400">
+          One command. Your project builds in public automatically.
+        </p>
+      </div>
 
-      <h1 className="mb-6 text-4xl font-extrabold tracking-tight">
-        Add your project to BigStarter
-      </h1>
+      {/* Primary CTA */}
+      <div className="rounded-xl border border-indigo-500/30 bg-indigo-950/40 p-6 mb-8">
+        <p className="text-xs text-indigo-400 font-medium uppercase tracking-wider mb-3">Step 1 — Run in your project directory</p>
+        <div className="flex items-center gap-3 bg-gray-900 rounded-lg px-4 py-3 font-mono text-sm">
+          <span className="text-gray-500 select-none">$</span>
+          <span className="text-indigo-300 flex-1">npx @bigstarter/mcp-server init</span>
+        </div>
+        <p className="text-xs text-gray-500 mt-3">
+          Requires a GitHub token with <code className="text-gray-400">repo</code> scope.
+          Generate one at <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">github.com/settings/tokens</a>
+        </p>
+      </div>
 
-      <p className="mb-10 text-lg leading-relaxed text-gray-300">
-        Push a <code className="text-indigo-300">.kap/kap.json</code> file to your public GitHub repo.
-        BigStarter indexes it automatically — no backend, no configuration, GitHub is the source of truth.
-      </p>
-
-      <div className="mb-10 rounded-xl border border-gray-700 bg-gray-900 p-8 text-left">
-        <h2 className="mb-4 text-base font-semibold text-gray-200">How it works</h2>
+      {/* What init does */}
+      <div className="rounded-xl border border-gray-700/60 bg-gray-900/40 p-6 mb-8">
+        <h2 className="text-sm font-semibold text-gray-200 mb-4">What happens automatically</h2>
         <ol className="space-y-3 text-sm text-gray-400">
           <li className="flex gap-3">
-            <span className="text-indigo-400 font-bold">1.</span>
-            <span>
-              Create <code className="text-indigo-300">.kap/kap.json</code> in your repo with{' '}
-              <code className="text-indigo-300">{'{"name":"…","pitch":"…","tags":[]}'}</code>
-            </span>
+            <span className="text-indigo-400 font-bold shrink-0">1.</span>
+            <span>Creates <code className="text-indigo-300">.kap/kap.json</code> with your project metadata</span>
           </li>
           <li className="flex gap-3">
-            <span className="text-indigo-400 font-bold">2.</span>
-            <span>
-              Push updates as Markdown files to <code className="text-indigo-300">.kap/updates/</code>
-            </span>
+            <span className="text-indigo-400 font-bold shrink-0">2.</span>
+            <span>Configures the BigStarter MCP plugin in Claude Code</span>
           </li>
           <li className="flex gap-3">
-            <span className="text-indigo-400 font-bold">3.</span>
-            <span>
-              Open GitHub Issues labeled <code className="text-indigo-300">kap-signal</code> to collect community votes
-            </span>
+            <span className="text-indigo-400 font-bold shrink-0">3.</span>
+            <span>Opens a PR on the BigStarter registry — your project appears on the platform</span>
           </li>
           <li className="flex gap-3">
-            <span className="text-indigo-400 font-bold">4.</span>
-            <span>
-              BigStarter rebuilds every 30 minutes — your project page appears automatically
-            </span>
+            <span className="text-indigo-400 font-bold shrink-0">4.</span>
+            <span>Installs a GitHub Action that auto-publishes updates on every commit, PR merge, or release</span>
           </li>
         </ol>
       </div>
 
-      <a
-        href={GITHUB_APP_URL}
-        className="inline-flex items-center gap-3 rounded-lg bg-indigo-600 px-8 py-4 text-base font-semibold text-white transition hover:bg-indigo-500"
-      >
-        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-        </svg>
-        Install GitHub App
-      </a>
+      {/* Manual protocol */}
+      <div className="rounded-xl border border-gray-700/40 bg-gray-900/20 p-6 mb-8">
+        <h2 className="text-sm font-semibold text-gray-500 mb-4">Or manually — the protocol</h2>
+        <ol className="space-y-2 text-sm text-gray-500">
+          <li className="flex gap-3">
+            <span className="shrink-0">1.</span>
+            <span>Push <code className="text-gray-400">.kap/kap.json</code> with <code className="text-gray-400">{'{"name":"…","pitch":"…","tags":[]}'}</code></span>
+          </li>
+          <li className="flex gap-3">
+            <span className="shrink-0">2.</span>
+            <span>Push updates as <code className="text-gray-400">.kap/updates/YYYY-MM-DD-slug.md</code></span>
+          </li>
+          <li className="flex gap-3">
+            <span className="shrink-0">3.</span>
+            <span>Open GitHub Issues labeled <code className="text-gray-400">kap-signal</code> to collect votes</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="shrink-0">4.</span>
+            <span>Open a PR on <a href="https://github.com/BigFatDot/BigStarter" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">BigFatDot/BigStarter</a> to add yourself to registry.json</span>
+          </li>
+        </ol>
+      </div>
 
-      <p className="mt-6 text-xs text-gray-600">
-        Free for open source. The App only requests permissions it needs.
+      <p className="text-center text-xs text-gray-600">
+        Free for open source. Your data stays in your GitHub repo.
       </p>
 
     </main>

@@ -108,10 +108,12 @@ export default async function HomePage() {
         </div>
       ) : (
         <>
-          <p className="mb-6 text-sm text-gray-500">
-            {projects.length} project{projects.length !== 1 ? 's' : ''} indexed
-          </p>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-6 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              {projects.length} project{projects.length !== 1 ? 's' : ''} building in public
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
             {projects.map((project) => (
               <ProjectCard
                 key={`${project.owner}/${project.repo}`}

@@ -94,23 +94,31 @@ export function UpdateFeed({ owner, repo, initialUpdates }: Props) {
       </div>
 
       {updates.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-700 bg-gray-900 p-8 text-center text-sm text-gray-500">
+        <div className="rounded-lg border border-dashed border-gray-700 bg-gray-900/40 p-8 text-center text-sm text-gray-500">
           No updates yet. Updates appear when <code className="text-indigo-400">.kap/updates/</code> files are pushed.
         </div>
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-3">
           {updates.map((update) => (
             <li
               key={update.id}
-              className="rounded-lg border border-gray-700 bg-gray-900 p-5 animate-in fade-in duration-300"
+              className="rounded-xl border border-gray-700/60 bg-gray-900/60 p-5 animate-in fade-in duration-300 hover:border-gray-600 transition"
             >
-              <div className="flex items-center justify-between gap-4">
-                <h3 className="font-semibold text-gray-100">{update.title}</h3>
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <h3 className="font-semibold text-gray-100 leading-snug">{update.title}</h3>
                 {update.date && (
-                  <span className="shrink-0 text-xs text-gray-500">{update.date}</span>
+                  <span className="shrink-0 text-xs text-gray-500 mt-0.5">
+                    {(() => {
+                      try {
+                        return new Date(update.date).toLocaleDateString('en-US', {
+                          month: 'short', day: 'numeric', year: 'numeric'
+                        })
+                      } catch { return update.date }
+                    })()}
+                  </span>
                 )}
               </div>
-              <p className="mt-2 text-sm text-gray-400">{update.summary}</p>
+              <p className="text-sm text-gray-400 leading-relaxed">{update.summary}</p>
             </li>
           ))}
         </ul>
