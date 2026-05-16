@@ -25,15 +25,22 @@ Thumbs.db
 coverage/
 .tsx/
 
-# KAP/BigStarter — données locales uniquement
-/data/                        # bases Kuzu locales
-.kap/*.db                     # bases Kuzu
-.kap/session-state.json       # état circuit-breaker local
-.kap/sessions/                # résumés de sessions locales
-.kap/audit/                   # logs d'audit locaux
-.kap/compressions/            # checkpoints de contexte locaux
+# KAP/BigStarter — données locales (jamais committer)
+/data/
+.kap/**/*.db
+.kap/**/.lock
+.kap/**/.shadow
+.kap/**/.wal
+.kap/**/*.kz
+.kap/**/*.hindex
+.kap/**/*.hindex.ovf
+.kap/session-state.json
+.kap/sessions/
+.kap/audit/
+.kap/compressions/
+.kap/kap-platform.db/
 
-# .kap/kap.json, .kap/decisions/, .kap/updates/, .kap/features/ sont committés
+# Committer uniquement : .kap/kap.json, .kap/decisions/, .kap/updates/
 
 # Claude Code local settings — contient des tokens, jamais committer
 .claude/settings.json

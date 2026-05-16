@@ -99,27 +99,44 @@ interface KapJson {
   tags?: string[]
 }
 
-// Cherche tous les repos avec .kap/kap.json via GitHub Search API
+interface RegistryEntry { owner: string; repo: string }
+interface Registry { projects: RegistryEntry[] }
+
+// Lit la liste des projets depuis registry.json dans le repo BigStarter
+// Plus fiable que GitHub Search API qui a un délai d'indexation
 export async function searchProjects(): Promise<BigStarterProject[]> {
   try {
-    const res = await githubFetch(
-      `${GITHUB_API}/search/code?q=filename:kap.json+path:.kap&per_page=50`
+    // 1. Lire registry.json
+    const regRes = await githubFetch(
+      `${GITHUB_API}/repos/BigFatDot/BigStarter/contents/registry.json`
     )
-    if (!res.ok) return []
+    if (!regRes.ok) return []
+    const regFile = await regRes.json() as GitHubContentFile
+    const registry = JSON.parse(decodeBase64(regFile.content)) as Registry
+    const entries = registry.projects ?? []
 
-    const data = await res.json() as { items?: GitHubCodeSearchItem[] }
-    const items = data.items ?? []
-
+    // 2. Récupérer les métadonnées de chaque projet
     const projects = await Promise.allSettled(
-      items.map(async (item) => {
-        const { owner, name: repoName, full_name, stargazers_count, updated_at } = item.repository
-        const project = await getProject(owner.login, repoName)
+      entries.map(async ({ owner, repo: repoName }) => {
+        const full_name = `${owner}/${repoName}`
+        const project = await getProject(owner, repoName)
         if (!project) return null
+        // Get repo metadata for stars/updatedAt
+        let stargazers_count = 0
+        let updated_at = new Date().toISOString()
+        try {
+          const repoRes = await githubFetch(`${GITHUB_API}/repos/${full_name}`)
+          if (repoRes.ok) {
+            const rd = await repoRes.json() as { stargazers_count: number; updated_at: string }
+            stargazers_count = rd.stargazers_count
+            updated_at = rd.updated_at
+          }
+        } catch { /* use defaults */ }
         return {
           ...project,
           stars: stargazers_count,
           updatedAt: updated_at,
-          owner: owner.login,
+          owner: owner,
           repo: repoName,
           // full_name used only for deduplication
           _full_name: full_name,
