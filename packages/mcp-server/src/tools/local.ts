@@ -129,6 +129,17 @@ ${editorial}
             ...(sha ? { sha } : {}),
           });
           committed = true;
+
+          // Trigger BigStarter platform rebuild immediately — no cron wait
+          // Uses the dev's own token: local, zero cross-repo permissions needed
+          try {
+            await octokit.repos.createDispatchEvent({
+              owner: "BigFatDot",
+              repo:  "BigStarter",
+              event_type: "project-updated",
+              client_payload: { project: `${owner}/${repo}`, filename },
+            });
+          } catch { /* BigStarter dispatch optional — platform will catch up on cron */ }
         }
       } catch { /* GitHub not configured or unreachable */ }
 
@@ -143,7 +154,7 @@ ${editorial}
             committed_to_github: committed,
             filename: committed ? `.kap/updates/${filename}` : null,
             message: committed
-              ? `Update committed to .kap/updates/${filename} — visible on BigStarter platform.`
+              ? `Update committed + BigStarter rebuild triggered. Live in ~1 min.`
               : publishReady
                 ? `Update generated via sampling. Add GITHUB_TOKEN to commit automatically.`
                 : `Event stored. Sampling unavailable — using raw summary.`,

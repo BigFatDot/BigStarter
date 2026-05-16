@@ -26,16 +26,39 @@ process.stdin.on('end', async () => {
     // Si le serveur n'est pas up, le hook échoue silencieusement (async)
     const kapApiUrl = process.env.KAP_API_URL
     if (!kapApiUrl || kapApiUrl === 'local') {
-      // Mode local : écrire dans le log de session
+      // Mode local : log + trigger BigStarter dispatch directement si c'est un push
       const logLine = JSON.stringify({
         event: 'git_auto_report',
         type: isCommit ? 'commit' : 'push',
-        hash,
-        branch,
+        hash, branch,
         command: command.slice(0, 120),
         ts: new Date().toISOString(),
       })
       process.stderr.write(`[kap-hook] ${logLine}\n`)
+
+      // Sur git push : notifier BigStarter platform pour rebuild immédiat
+      // Utilise le token GitHub du dev — local, sans serveur intermédiaire
+      if (isPush) {
+        const ghToken = process.env.GITHUB_TOKEN
+        const owner   = process.env.GITHUB_OWNER
+        const repo    = process.env.GITHUB_REPO
+        if (ghToken && owner && repo) {
+          await fetch('https://api.github.com/repos/BigFatDot/BigStarter/dispatches', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${ghToken}`,
+              'Accept': 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              event_type: 'project-updated',
+              client_payload: { project: `${owner}/${repo}`, branch, hash },
+            }),
+          }).then(() => {
+            process.stderr.write(`[kap-hook] ✓ BigStarter rebuild triggered\n`)
+          }).catch(() => {})
+        }
+      }
       return process.exit(0)
     }
 
