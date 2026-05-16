@@ -1,5 +1,5 @@
 {
-  "name": "@bigstarter/mcp-server",
+  "name": "bigstarter",
   "version": "0.1.0",
   "description": "The Kickstarter for vibe coding — MCP plugin for building in public with AI agents",
   "type": "module",
