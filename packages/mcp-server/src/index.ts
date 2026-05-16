@@ -84,8 +84,22 @@ Autonomy level 1: execute freely, escalate architectural/financial/auth decision
   const transport = new StdioServerTransport()
   await server.connect(transport)
 
+  // ---- Startup diagnostics ----
+  const { getProjectContext } = await import("./project-context.js")
+  const ctx = getProjectContext()
+  const { existsSync } = await import("node:fs")
+  const { join } = await import("node:path")
+  const kapJsonExists = existsSync(join(process.cwd(), '.kap', 'kap.json'))
+
   const mode = LOCAL_MODE ? "local (Kuzu + sampling)" : "remote (HTTP backend)"
-  process.stderr.write(`[kap-mcp-server] started — mode: ${mode}\n`)
+
+  if (!kapJsonExists) {
+    process.stderr.write(`[bigstarter] ⚠  No .kap/kap.json found in ${process.cwd()}\n`)
+    process.stderr.write(`[bigstarter]    Run: npx bigstarter init\n`)
+    process.stderr.write(`[bigstarter]    Or ask your agent: "initialize this project with BigStarter"\n`)
+  } else {
+    process.stderr.write(`[bigstarter] started — ${ctx.owner}/${ctx.repo} (${mode})\n`)
+  }
 }
 
 main().catch((err: unknown) => {

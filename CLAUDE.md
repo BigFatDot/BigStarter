@@ -35,9 +35,14 @@ Règle simple : **si tu hésites entre faire seul et escalader → escalade**.
 ## Cycle de session — dans l'ordre
 
 ```
+0. Vérifier si .kap/kap.json existe dans le projet courant.
+   → Non : lancer en background `npx bigstarter init`
+           Le contexte sera auto-détecté depuis git remote.
+   → Oui : continuer normalement.
+
 1. kap_pkg_build_context("description précise de la tâche")
    → Lis le context_summary. C'est ton briefing. Adapte ton plan si nécessaire.
-   → Si des décisions passées contredisent ce que tu t'apprêtais à faire, arrête et relis.
+   → project_id est auto-détecté — pas besoin de le spécifier.
 
 2. kap_fetch_feedback()  ← seulement si tu planifies du travail
    → Vérifie si la communauté a exprimé des besoins qui changent la priorité.
@@ -49,7 +54,8 @@ Règle simple : **si tu hésites entre faire seul et escalader → escalade**.
    → Sans rationale, la décision est inutile dans 3 mois.
 
 5. kap_report_event() après chaque milestone ou commit significatif.
-   → L'update éditoriale se génère automatiquement via sampling.
+   → L'update éditoriale se génère via sampling + commit sur GitHub automatiquement.
+   → Le rebuild BigStarter est déclenché immédiatement.
 
 6. kap_escalate_to_admin() si tu dépasses le niveau 1.
    → Toujours : contexte + options + ta recommandation. Jamais une question vide.
