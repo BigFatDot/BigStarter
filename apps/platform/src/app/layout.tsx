@@ -11,15 +11,15 @@ function NavHeader() {
   return (
     <header className="border-b border-gray-800/60 bg-gray-950/90 backdrop-blur-sm sticky top-0 z-10">
       <div className="mx-auto max-w-5xl px-4 h-14 flex items-center justify-between">
-        <a href="/BigStarter/" className="flex items-center gap-2 font-bold tracking-tight hover:text-indigo-400 transition">
+        <a href="/" className="flex items-center gap-2 font-bold tracking-tight hover:text-indigo-400 transition">
           <span className="text-indigo-400 text-lg">◆</span>
           <span>BigStarter</span>
         </a>
         <nav className="flex items-center gap-3">
-          <a href="/BigStarter/" className="text-sm text-gray-400 hover:text-white transition hidden sm:block">
+          <a href="/" className="text-sm text-gray-400 hover:text-white transition hidden sm:block">
             Explore
           </a>
-          <a href="/BigStarter/install/"
+          <a href="/install/"
             className="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition font-medium">
             Add yours
           </a>
