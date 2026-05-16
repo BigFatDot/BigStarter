@@ -3,7 +3,7 @@
  * bigstarter init — onboarding CLI
  * Creates .kap/kap.json, .mcp.json (gitignored), and .github/workflows/bigstarter-reporter.yml
  *
- * Usage: npx @bigstarter/mcp-server init
+ * Usage: npx bigstarter init
  */
 
 import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs'
@@ -75,7 +75,7 @@ async function main(): Promise<void> {
         bigstarter: {
           command: 'node',
           args: [useFallback
-            ? 'node_modules/@bigstarter/mcp-server/dist/index.js'
+            ? 'node_modules/bigstarter/dist/index.js'
             : mcpServerPath,
           ],
           env: {
@@ -124,7 +124,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - run: npx @bigstarter/mcp-server report
+      - run: npx bigstarter report
         env:
           ANTHROPIC_API_KEY: \${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}

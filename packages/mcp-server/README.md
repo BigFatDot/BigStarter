@@ -1,4 +1,4 @@
-# @bigstarter/mcp-server
+# bigstarter
 
 **The Kickstarter for Vibe Coding** — a local MCP plugin that lets AI-assisted projects build in public.
 
@@ -12,7 +12,7 @@
 ## Install
 
 ```bash
-npx @bigstarter/mcp-server init
+npx bigstarter init
 ```
 
 This creates:
@@ -31,7 +31,7 @@ Add to `.mcp.json` (created by `init`):
   "mcpServers": {
     "bigstarter": {
       "command": "npx",
-      "args": ["@bigstarter/mcp-server"],
+      "args": ["bigstarter"],
       "env": {
         "KAP_API_URL": "local",
         "KAP_PROJECT_ID": "your-project-id",

@@ -22,7 +22,7 @@ export default function InstallPage() {
         <p className="text-xs text-indigo-400 font-medium uppercase tracking-wider mb-3">Step 1 — Run in your project directory</p>
         <div className="flex items-center gap-3 bg-gray-900 rounded-lg px-4 py-3 font-mono text-sm">
           <span className="text-gray-500 select-none">$</span>
-          <span className="text-indigo-300 flex-1">npx @bigstarter/mcp-server init</span>
+          <span className="text-indigo-300 flex-1">npx bigstarter init</span>
         </div>
         <p className="text-xs text-gray-500 mt-3">
           Requires a GitHub token with <code className="text-gray-400">repo</code> scope.
