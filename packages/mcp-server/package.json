@@ -1,12 +1,13 @@
 {
   "name": "bigstarter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The Kickstarter for vibe coding — MCP plugin for building in public with AI agents",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
     "bigstarter": "./dist/cli/init.js",
+    "bigstarter-report": "./dist/cli/report.js",
     "bigstarter-mcp": "./dist/index.js"
   },
   "exports": {
@@ -22,8 +23,14 @@
     "clean": "rm -rf dist"
   },
   "keywords": [
-    "mcp", "ai-agents", "build-in-public", "vibe-coding",
-    "kickstarter", "github", "claude", "bigstarter"
+    "mcp",
+    "ai-agents",
+    "build-in-public",
+    "vibe-coding",
+    "kickstarter",
+    "github",
+    "claude",
+    "bigstarter"
   ],
   "homepage": "https://github.com/BigFatDot/BigStarter",
   "repository": {
@@ -31,7 +38,10 @@
     "url": "https://github.com/BigFatDot/BigStarter.git"
   },
   "license": "MIT",
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@octokit/rest": "^21.0.0",

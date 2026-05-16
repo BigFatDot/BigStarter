@@ -144,18 +144,22 @@ jobs:
     const REGISTRY_OWNER = 'BigFatDot'
     const REGISTRY_REPO  = 'BigStarter'
 
-    // 1. Fork BigFatDot/BigStarter into user's account (idempotent)
+    // 1. Fork BigFatDot/BigStarter (idempotent — safe to call multiple times)
     await octokit.repos.createFork({ owner: REGISTRY_OWNER, repo: REGISTRY_REPO })
-    // GitHub needs a moment to create the fork
-    await new Promise(r => setTimeout(r, 3000))
+      .catch(() => { /* already forked is fine */ })
 
-    // 2. Read current registry.json from the fork
-    const forkFile = await octokit.repos.getContent({
-      owner, repo: REGISTRY_REPO, path: 'registry.json',
-    }).catch(() => null)
+    // Poll until fork is ready (up to 30s) instead of arbitrary timeout
+    let forkFile = null
+    for (let attempt = 0; attempt < 6; attempt++) {
+      await new Promise(r => setTimeout(r, attempt === 0 ? 2000 : 5000))
+      forkFile = await octokit.repos.getContent({
+        owner, repo: REGISTRY_REPO, path: 'registry.json',
+      }).catch(() => null)
+      if (forkFile) break
+    }
 
-    // Fallback: read from upstream if fork not ready yet
-    const sourceFile = forkFile ?? await octokit.repos.getContent({
+    // Always read from upstream as authoritative source for registry content
+    const sourceFile = await octokit.repos.getContent({
       owner: REGISTRY_OWNER, repo: REGISTRY_REPO, path: 'registry.json',
     })
 
