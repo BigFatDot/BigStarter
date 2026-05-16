@@ -76,16 +76,26 @@ async function generateEditorial(): Promise<string> {
   }
 
   // Template fallback — always works, no API needed
-  const eventLabel: Record<string, string> = {
-    push:          'New commits pushed',
-    pull_request:  'Pull request merged',
-    release:       'New release published',
-    workflow_run:  'CI pipeline completed',
-    custom:        'Update',
+  // Parse commit messages to build a readable summary
+  const cleanCommits = recentCommits
+    .map(c => c.replace(/^[a-f0-9]+ /, ''))          // remove hash
+    .map(c => c.replace(/^(feat|fix|chore|docs|refactor|test|style|build|ci)(\(.+?\))?:\s*/i, '')) // remove conventional prefix
+    .filter(c => c.length > 3)
+
+  if (cleanCommits.length === 0) {
+    return `${projectName} pushed updates on ${branch}.`
   }
-  const label = eventLabel[eventType] ?? 'Update'
-  const commitLine = recentCommits[0] ? ` Latest: ${recentCommits[0].replace(/^[a-f0-9]+ /, '')}` : ''
-  return `${label} on ${projectName}.${commitLine}${recentCommits.length > 1 ? ` ${recentCommits.length} commits since last update.` : ''}`
+
+  if (cleanCommits.length === 1) {
+    return `${projectName}: ${cleanCommits[0]}`
+  }
+
+  // Multiple commits — pick the most significant (feat > fix > others)
+  const feat = cleanCommits.find((_, i) => recentCommits[i]?.includes('feat:'))
+  const fix  = cleanCommits.find((_, i) => recentCommits[i]?.includes('fix:'))
+  const main = feat ?? fix ?? cleanCommits[0] ?? ''
+
+  return `${projectName}: ${main}. ${cleanCommits.length} commits shipped on ${branch}.`
 }
 
 // ── Commit update to GitHub ───────────────────────────────────────

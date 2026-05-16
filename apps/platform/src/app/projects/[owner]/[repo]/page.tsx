@@ -135,7 +135,25 @@ export default async function ProjectPage({ params }: PageProps) {
         </section>
       )}
 
-      <section className="mb-10">
+      {/* Community CTA — signals empty state */}
+      {signals.length === 0 && (
+        <section className="mb-10 rounded-xl border border-dashed border-gray-700/60 bg-gray-900/20 p-6">
+          <p className="text-sm font-medium text-gray-400 mb-2">No community signals yet</p>
+          <p className="text-xs text-gray-600 mb-4">
+            Open GitHub Issues labeled <code className="text-gray-400">kap-signal</code> on this repo
+            to request features, report bugs, or vote on direction.
+          </p>
+          <a
+            href={`https://github.com/${owner}/${repo}/issues/new?labels=kap-signal&title=Feature+request%3A+`}
+            target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg transition"
+          >
+            + Open a signal on GitHub
+          </a>
+        </section>
+      )}
+
+      <section className="mb-10 flex items-center gap-4">
         <a href={`https://github.com/${owner}/${repo}`} target="_blank" rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-lg">
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -143,7 +161,7 @@ export default async function ProjectPage({ params }: PageProps) {
           </svg>
           View on GitHub
         </a>
-        <p className="mt-2 text-xs text-gray-600">Star the repo to follow this project's progress</p>
+        <span className="text-xs text-gray-600">⭐ Star to follow progress</span>
       </section>
 
       <UpdateFeed owner={owner} repo={repo} initialUpdates={updates} />
