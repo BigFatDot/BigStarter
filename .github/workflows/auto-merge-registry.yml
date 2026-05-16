@@ -1,0 +1,48 @@
+name: Auto-merge registry PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths: ['registry.json']
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate-and-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Validate registry.json
+        id: validate
+        run: |
+          # Only allow PRs that touch registry.json
+          CHANGED=$(git diff --name-only origin/main HEAD)
+          if [ "$CHANGED" != "registry.json" ]; then
+            echo "PR touches files other than registry.json — skipping auto-merge"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Validate JSON structure
+          python3 -c "
+          import json, sys
+          with open('registry.json') as f:
+              data = json.load(f)
+          projects = data.get('projects', [])
+          for p in projects:
+              assert 'owner' in p and 'repo' in p, f'Invalid entry: {p}'
+          print(f'Valid: {len(projects)} project(s)')
+          " || { echo "valid=false" >> $GITHUB_OUTPUT; exit 0; }
+
+          echo "valid=true" >> $GITHUB_OUTPUT
+
+      - name: Auto-merge
+        if: steps.validate.outputs.valid == 'true'
+        run: gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

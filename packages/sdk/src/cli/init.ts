@@ -132,22 +132,89 @@ jobs:
     console.log('✓ .github/workflows/bigstarter-reporter.yml created')
   }
 
+  // ── 5. Register on BigStarter — open PR on registry ──────────────
+  console.log('\nRegistering on BigStarter platform...')
+  let registered = false
+  try {
+    // Dynamically import octokit to avoid hard dependency
+    const { Octokit } = await import('@octokit/rest' as string)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const octokit = new (Octokit as any)({ auth: token })
+
+    const REGISTRY_OWNER = 'BigFatDot'
+    const REGISTRY_REPO  = 'BigStarter'
+
+    // 1. Fork BigFatDot/BigStarter into user's account (idempotent)
+    await octokit.repos.createFork({ owner: REGISTRY_OWNER, repo: REGISTRY_REPO })
+    // GitHub needs a moment to create the fork
+    await new Promise(r => setTimeout(r, 3000))
+
+    // 2. Read current registry.json from the fork
+    const forkFile = await octokit.repos.getContent({
+      owner, repo: REGISTRY_REPO, path: 'registry.json',
+    }).catch(() => null)
+
+    // Fallback: read from upstream if fork not ready yet
+    const sourceFile = forkFile ?? await octokit.repos.getContent({
+      owner: REGISTRY_OWNER, repo: REGISTRY_REPO, path: 'registry.json',
+    })
+
+    const fileData = sourceFile.data as { content: string; sha: string }
+    const registry = JSON.parse(Buffer.from(fileData.content.replace(/\n/g, ''), 'base64').toString()) as {
+      projects: Array<{ owner: string; repo: string }>
+    }
+
+    // Check not already registered
+    const alreadyIn = registry.projects.some(p => p.owner === owner && p.repo === repo)
+    if (!alreadyIn) {
+      registry.projects.push({ owner, repo })
+
+      // 3. Update registry.json in user's fork
+      await octokit.repos.createOrUpdateFileContents({
+        owner, repo: REGISTRY_REPO,
+        path: 'registry.json',
+        message: `feat: add ${owner}/${repo} to BigStarter`,
+        content: Buffer.from(JSON.stringify(registry, null, 2) + '\n').toString('base64'),
+        sha: fileData.sha,
+      })
+
+      // 4. Create PR to BigFatDot/BigStarter
+      await octokit.pulls.create({
+        owner: REGISTRY_OWNER, repo: REGISTRY_REPO,
+        title: `Add ${name} (${owner}/${repo})`,
+        head: `${owner}:main`,
+        base: 'main',
+        body: `## New BigStarter project\n\n**${name}**\n${pitch}\n\nhttps://github.com/${owner}/${repo}`,
+      })
+
+      console.log(`✓ PR opened on BigFatDot/BigStarter to register your project`)
+      console.log(`  github.com/${REGISTRY_OWNER}/${REGISTRY_REPO}/pulls`)
+      registered = true
+    } else {
+      console.log('✓ Project already registered on BigStarter')
+      registered = true
+    }
+  } catch (err) {
+    console.warn(`  Could not auto-register (${(err as Error).message?.slice(0, 60)})`)
+    console.warn('  → Open a PR manually: github.com/BigFatDot/BigStarter')
+  }
+
   console.log(`
 ✅ BigStarter connected!
 
-Next steps:
-  1. Commit .kap/kap.json and the workflow:
-     git add .kap/kap.json .github/ && git commit -m "feat: add BigStarter"
-     git push
+What was done:
+  • .kap/kap.json          — project metadata
+  • .mcp.json              — MCP server config (gitignored, has token)
+  • .github/workflows/     — auto-reporter on push/PR/release
+  ${registered ? '• PR opened on BigFatDot/BigStarter registry' : '• Registration pending (open PR manually)'}
 
-  2. Restart Claude Code in this directory
-     → The bigstarter MCP server loads automatically
+Next:
+  1. git add .kap/kap.json .github/ && git commit -m "feat: add BigStarter" && git push
+  2. Restart Claude Code → BigStarter MCP loads automatically
+  3. /mcp__bigstarter__agent_setup builder
 
-  3. In Claude Code, start with:
-     /mcp__bigstarter__agent_setup builder
-
-  4. Your project will appear on the BigStarter platform within minutes:
-     https://BigFatDot.github.io/BigStarter/projects/${owner}/${repo}
+Your project page (live after PR merge):
+  https://BigFatDot.github.io/BigStarter/projects/${owner}/${repo}
 `)
 }
 
