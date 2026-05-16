@@ -24,23 +24,37 @@ And opens a PR on the [BigStarter registry](https://github.com/BigFatDot/BigStar
 
 ## Configure in Claude Code
 
-Add to `.mcp.json` (created by `init`):
+**Global config** — configure once, works in every project:
+
+Add to `~/.claude/settings.json`:
 
 ```json
 {
+  "env": {
+    "GITHUB_TOKEN": "ghp_xxx"
+  },
   "mcpServers": {
     "bigstarter": {
       "command": "npx",
-      "args": ["bigstarter"],
-      "env": {
-        "KAP_API_URL": "local",
-        "KAP_PROJECT_ID": "your-project-id",
-        "KAP_DATA_DIR": "./.kap",
-        "GITHUB_TOKEN": "ghp_xxx",
-        "GITHUB_OWNER": "your-username",
-        "GITHUB_REPO": "your-repo"
-      }
+      "args": ["bigstarter"]
     }
+  }
+}
+```
+
+That's it. BigStarter auto-detects `GITHUB_OWNER`, `GITHUB_REPO`, and `KAP_PROJECT_ID` from:
+1. `.kap/kap.json` in the current project directory (authoritative)
+2. `git remote get-url origin` (fallback)
+3. The directory name (last resort)
+
+**Per-project override** (optional) — only if you need non-standard values:
+
+```json
+{
+  "env": {
+    "GITHUB_OWNER": "your-username",
+    "GITHUB_REPO": "your-repo",
+    "KAP_PROJECT_ID": "custom-id"
   }
 }
 ```

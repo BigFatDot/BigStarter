@@ -11,10 +11,21 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { getLocalPKG } from "../local-pkg.js";
 import { sampleText } from "../sampling.js";
+import { getProjectContext } from "../project-context.js";
 
+// Auto-detected at startup — no per-project env vars needed in .mcp.json
+const ctx = getProjectContext();
+
+// project_id is now optional: defaults to auto-detected value
 const projectIdParam = {
-  project_id: z.string().describe("Your KAP project ID (from kap.config.json)"),
+  project_id: z.string().optional()
+    .describe(`Project ID — auto-detected from .kap/kap.json or git remote (current: ${ctx.projectId})`),
 };
+
+/** Resolve project_id: use arg if provided, fall back to auto-detected */
+function resolveProjectId(arg: string | undefined): string {
+  return arg ?? ctx.projectId
+}
 
 export function registerLocalTools(server: McpServer): void {
 
@@ -37,7 +48,7 @@ SIDE EFFECT: generates a public editorial update visible on the project page.`,
         .describe("Extra data: commit hash, test counts, branch name, etc."),
     },
     async (args) => {
-      const pkg = await getLocalPKG(args.project_id);
+      const pkg = await getLocalPKG(resolveProjectId(args.project_id));
 
       // 1. Persist artifact in PKG
       const artifactId = await pkg.writeArtifact({
@@ -105,13 +116,13 @@ artifact_id: "${artifactId}"
 ${editorial}
 `;
 
-      // Essaie de committer via GitHubPKGService si disponible, sinon log local
+      // Commit to GitHub — uses auto-detected context (no per-project config needed)
       let committed = false;
       try {
         const { Octokit } = await import("@octokit/rest" as string);
-        const token = process.env["GITHUB_TOKEN"] ?? process.env["GITHUB_APP_TOKEN"];
-        const owner = process.env["GITHUB_OWNER"];
-        const repo  = process.env["GITHUB_REPO"];
+        const token = ctx.githubToken;
+        const owner = ctx.owner;
+        const repo  = ctx.repo;
         if (token && owner && repo) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const octokit = new (Octokit as any)({ auth: token });
@@ -193,7 +204,7 @@ SIDE EFFECT: this data persists across sessions and is read by kap_pkg_build_con
       })).optional().describe("Alternatives you considered and rejected"),
     },
     async (args) => {
-      const pkg = await getLocalPKG(args.project_id);
+      const pkg = await getLocalPKG(resolveProjectId(args.project_id));
       let id: string;
 
       if (args.node_type === "decision") {
@@ -248,7 +259,7 @@ READ THE RESULT: the context_summary field is your briefing. If it contradicts y
         .describe("Generate a smart summary via LLM sampling (default: true). Set false for raw data only."),
     },
     async (args) => {
-      const pkg = await getLocalPKG(args.project_id);
+      const pkg = await getLocalPKG(resolveProjectId(args.project_id));
       const decisions = await pkg.getRecentDecisions(8);
       const signals = await pkg.getPendingSignals();
 
@@ -328,7 +339,7 @@ Do not plan a sprint without checking this first.`,
         .describe("Max number of signals to return"),
     },
     async (args) => {
-      const pkg = await getLocalPKG(args.project_id);
+      const pkg = await getLocalPKG(resolveProjectId(args.project_id));
       const signals = await pkg.getPendingSignals();
       const top = signals.slice(0, args.limit);
 
@@ -364,7 +375,7 @@ Searches across decisions and features.`,
       query: z.string().describe("Keyword or phrase to search for"),
     },
     async (args) => {
-      const pkg = await getLocalPKG(args.project_id);
+      const pkg = await getLocalPKG(resolveProjectId(args.project_id));
       const results = await pkg.searchNodes(args.query);
       return {
         content: [{
@@ -400,7 +411,7 @@ In local mode this is stored in the PKG and printed to stderr for the Admin to r
         .describe("What happens if Admin doesn't respond in 24h"),
     },
     async (args) => {
-      const pkg = await getLocalPKG(args.project_id);
+      const pkg = await getLocalPKG(resolveProjectId(args.project_id));
 
       // Store as signal in PKG
       const id = await pkg.writeSignal({
