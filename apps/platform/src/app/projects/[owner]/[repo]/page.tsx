@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getProject, getProjectUpdates, getProjectDecisions, getProjectSignals } from '@/lib/github'
 import { UpdateFeed } from './UpdateFeed'
+import { VoteButton } from '@/components/VoteButton'
 
 interface PageProps {
   params: Promise<{ owner: string; repo: string }>
@@ -180,16 +181,18 @@ export default async function ProjectPage({ params }: PageProps) {
         ) : (
           <ul className="space-y-2">
             {signals.map(signal => (
-              <li key={signal.url}>
-                <a
-                  href={signal.url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-between rounded-xl border border-gray-700/60 bg-gray-900/40 px-4 py-3 hover:border-gray-600 transition group"
-                >
-                  <span className="text-sm text-gray-300 group-hover:text-white transition">{signal.title}</span>
-                  <span className="shrink-0 flex items-center gap-1 text-xs font-medium text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded-full ml-4">
-                    👍 {signal.votes}
-                  </span>
+              <li key={signal.url} className="flex items-center justify-between rounded-xl border border-gray-700/60 bg-gray-900/40 px-4 py-3 hover:border-gray-600 transition gap-4">
+                <a href={signal.url} target="_blank" rel="noopener noreferrer"
+                  className="text-sm text-gray-300 hover:text-white transition flex-1">
+                  {signal.title}
                 </a>
+                <VoteButton
+                  owner={owner}
+                  repo={repo}
+                  issueNumber={parseInt(signal.url.split('/').pop() ?? '0')}
+                  initialVotes={signal.votes}
+                  signalTitle={signal.title}
+                />
               </li>
             ))}
           </ul>

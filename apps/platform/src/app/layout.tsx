@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { AuthStatus } from '@/components/AuthStatus'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ function NavHeader() {
           <a href="/" className="text-sm text-gray-400 hover:text-white transition hidden sm:block">
             Explore
           </a>
+          <AuthStatus />
           <a href="/install/"
             className="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition font-medium">
             Add yours
