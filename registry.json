@@ -3,6 +3,14 @@
     {
       "owner": "BigFatDot",
       "repo": "BigStarter"
+    },
+    {
+      "owner": "BigFatDot",
+      "repo": "BigMCP"
+    },
+    {
+      "owner": "BigFatDot",
+      "repo": "BigFolder"
     }
   ]
 }
