@@ -161,7 +161,13 @@ export default async function HomePage() {
               </h2>
             </div>
 
-            <div className={projects.length === 1 ? 'max-w-md mx-auto' : 'grid gap-5 sm:grid-cols-2'}>
+            <div className={
+              projects.length === 1
+                ? 'max-w-md mx-auto'
+                : projects.length === 3
+                  ? 'grid gap-5 sm:grid-cols-2 [&>*:last-child:nth-child(odd)]:col-span-full [&>*:last-child:nth-child(odd)]:max-w-md [&>*:last-child:nth-child(odd)]:mx-auto'
+                  : 'grid gap-5 sm:grid-cols-2'
+            }>
               {projects.map(p => (
                 <ProjectCard key={`${p.owner}/${p.repo}`} project={p} />
               ))}
