@@ -23,73 +23,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Generate update
-        run: |
-          cat > /tmp/generate-update.mjs << 'EOF'
-          import Anthropic from '@anthropic-ai/sdk'
-          import { execSync } from 'node:child_process'
-          import { writeFileSync, mkdirSync } from 'node:fs'
-
-          const event = process.env.GITHUB_EVENT_NAME
-          const ref = process.env.GITHUB_REF_NAME
-          const repo = process.env.GITHUB_REPOSITORY
-          const sha = process.env.GITHUB_SHA?.slice(0, 7)
-
-          // Build context from recent commits
-          let context = `Repository: ${repo}\nEvent: ${event}\nBranch: ${ref}`
-          try {
-            const log = execSync('git log -3 --oneline').toString()
-            context += `\nRecent commits:\n${log}`
-          } catch {}
-
-          let update = `${event} on ${repo} (${sha})`
-
-          // Use Claude API if key available
-          if (process.env.ANTHROPIC_API_KEY) {
-            const claude = new Anthropic()
-            const resp = await claude.messages.create({
-              model: 'claude-haiku-4-5',
-              max_tokens: 200,
-              system: 'Write a 2-3 sentence honest public project update. No hype, no markdown, plain text.',
-              messages: [{ role: 'user', content: context }]
-            })
-            const block = resp.content.find(b => b.type === 'text')
-            if (block?.type === 'text') update = block.text
-          }
-
-          const date = new Date().toISOString().slice(0, 10)
-          const slug = update.slice(0, 40).toLowerCase().replace(/[^a-z0-9]+/g, '-')
-          const filename = `.kap/updates/${date}-${slug}.md`
-          const content = `---\ndate: "${new Date().toISOString()}"\nevent_type: "${event}"\n---\n\n${update}\n`
-
-          mkdirSync('.kap/updates', { recursive: true })
-          writeFileSync(filename, content)
-          console.log(`Written: ${filename}`)
-          console.log(update)
-          EOF
-          npm install @anthropic-ai/sdk --no-save 2>/dev/null || true
-          node /tmp/generate-update.mjs
+      - name: Generate and publish update
+        # No ANTHROPIC_API_KEY needed — bigstarter report uses template-based
+        # updates in CI. For AI-generated editorial, use the MCP plugin in
+        # Claude Code (sampling delegates the LLM call, no key required).
+        run: npx bigstarter report
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_SHA: ${{ github.sha }}
-
-      - name: Commit update
-        run: |
-          git config user.name "BigStarter Bot"
-          git config user.email "bot@bigstarter.dev"
-          git add .kap/updates/
-          git diff --cached --quiet || git commit -m "bigstarter: add update [skip ci]"
-          git push
-
-      - name: Trigger BigStarter platform rebuild
-        # Notifies BigFatDot/BigStarter to rebuild immediately — no 30min wait
-        run: |
-          curl -s -X POST \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/BigFatDot/BigStarter/dispatches \
-            -d "{\"event_type\":\"project-updated\",\"client_payload\":{\"project\":\"${{ github.repository }}\"}}" \
-          && echo "✓ BigStarter rebuild triggered" || echo "⚠ Could not trigger rebuild (no cross-repo token)"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

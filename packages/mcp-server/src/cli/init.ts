@@ -124,9 +124,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - run: npx bigstarter report
+      - name: Generate and publish update
+        # No ANTHROPIC_API_KEY needed — bigstarter report uses template-based
+        # updates in CI. For AI-generated editorial, use the MCP plugin in
+        # Claude Code (sampling delegates the LLM call, no key required).
+        run: npx bigstarter report
         env:
-          ANTHROPIC_API_KEY: \${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
 `)
     console.log('✓ .github/workflows/bigstarter-reporter.yml created')
