@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getProject, getProjectUpdates, getProjectDecisions, getProjectSignals } from '@/lib/github'
+import { getProject, getProjectUpdates, getProjectDecisions, getProjectSignals, searchProjects } from '@/lib/github'
 import { UpdateFeed } from './UpdateFeed'
 import { VoteButton } from '@/components/VoteButton'
 
@@ -36,7 +36,22 @@ function ProgressBar({ updates, decisions }: { updates: number; decisions: numbe
 }
 
 export async function generateStaticParams() {
-  return [{ owner: 'BigFatDot', repo: 'BigStarter' }]
+  // Always include the seed + fetch all from registry
+  const seed = [{ owner: 'BigFatDot', repo: 'BigStarter' }]
+  try {
+    const projects = await searchProjects()
+    const fromRegistry = projects.map(p => ({ owner: p.owner, repo: p.repo }))
+    // Merge seed + registry, deduplicate
+    const seen = new Set(seed.map(p => `${p.owner}/${p.repo}`))
+    const merged = [...seed]
+    for (const p of fromRegistry) {
+      const key = `${p.owner}/${p.repo}`
+      if (!seen.has(key)) { seen.add(key); merged.push(p) }
+    }
+    return merged
+  } catch {
+    return seed
+  }
 }
 
 export default async function ProjectPage({ params }: PageProps) {
