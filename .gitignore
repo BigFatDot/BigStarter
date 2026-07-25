@@ -52,3 +52,6 @@ coverage/
 # Test files
 test-sampling.js
 test-github-pkg.js
+
+# WikiChat — données locales de coordination multi-agents
+.wikichat/
